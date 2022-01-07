@@ -1,0 +1,1 @@
+REBORN_REMAIN_TIME = 120  # 复活所需时间
