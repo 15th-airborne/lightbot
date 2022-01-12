@@ -2,20 +2,19 @@ import os
 import random
 import config
 
-from plugin_manager import add_command
+from plugin_manager import GroupMessagePlugin, all_plugins
 from utils import cq
 
-img_dir = config.IMAGE_DIR
-img_files = os.listdir(img_dir)
+IMG_DIR = config.IMAGE_DIR
+IMG_FILES = os.listdir(IMG_DIR)
 
 
-@add_command
-async def send_setu(bot, event):
-    message = event['message']
-    if 'setu' in message or ('色' in message and '图' in message):
-        random_index = random.randint(0, len(img_files) - 1)
-        img_path = os.path.join(config.IMAGE_DIR, img_files[random_index])  # 根据索引获得图片路径
+class SetuPlugin(GroupMessagePlugin):
+    def get_reply(self):
+        if 'setu' in self.message or ('色' in self.message and '图' in self.message):
+            random_index = random.randint(0, len(IMG_FILES) - 1)
+            img_path = os.path.join(IMG_DIR, IMG_FILES[random_index])  # 根据索引获得图片路径
+            return cq.image(img_path)
 
-        reply_msg = cq.image(img_path)
 
-        await bot.send_group_msg(event['group_id'], reply_msg)  # 发送图片
+all_plugins.append(SetuPlugin)

@@ -4,6 +4,9 @@ from bot import Bot
 
 
 class TestEvent(unittest.TestCase):
+    def setUp(self):
+        pass
+
     def test_get_cq_code(self):
         """ 测试是否能获得正确的CQ码 """
         data = {"url": "https://www.baidu.com", "title": "百度"}

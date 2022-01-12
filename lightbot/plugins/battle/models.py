@@ -9,8 +9,8 @@ from peewee import *
 
 from database import create_tables, BaseModel
 from utils import cq
-import config
-from .config import REBORN_REMAIN_TIME
+REBORN_REMAIN_TIME = 120  # 复活所需时间
+
 
 
 class Player(BaseModel):
