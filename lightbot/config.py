@@ -2,6 +2,11 @@ import os
 
 # "/projects/lightbot/lightbot
 BASE_PATH = os.path.dirname(os.path.abspath(__file__))
+
+# 日志模块
+LOG_DIR = os.path.join(BASE_PATH, 'logs')
+LOG_FILE_PATH = os.path.join(LOG_DIR, 'output.log')
+
 CQHTTP_PATH = "/projects/lightbot/cqhttp"
 IMAGE_DIR = "/projects/lightbot/img"
 CACHE_IMAGE_PATH = "projects/lightbot/cqhttp/data"
