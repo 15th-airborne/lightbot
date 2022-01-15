@@ -18,28 +18,8 @@ class BaseModel(Model):
     class Meta:
         database = database
 
-
-""" 获取群成员列表的返回值
-group_id = BigIntegerField()  # 群号
-user_id = BigIntegerField()  # QQ 号
-nickname = CharField()  # 昵称
-card = CharField()  # 群名片／备注
-sex = CharField()  # 性别, male 或 female 或 unknown
-age = IntegerField()  # 年龄
-area = CharField()  # 地区
-join_time = IntegerField()  # 加群时间戳
-last_sent_time = IntegerField()  # 最后发言时间戳
-level = CharField()  # 成员等级
-role = CharField()  # 角色, owner 或 admin 或 member
-unfriendly = BooleanField()  # 是否不良记录成员
-title = CharField()  # 专属头衔
-title_expire_time = BigIntegerField()  # 专属头衔过期时间戳
-card_changeable = BooleanField()  # 是否允许修改群名片
-shut_up_timestamp = BigIntegerField()  # 禁言到期时间  
-"""
-
-
-class User(BaseModel):
+# https://docs.go-cqhttp.org/api/#获取群成员列表
+class GroupMember(BaseModel):
     group_id = BigIntegerField()  # 群号
     user_id = BigIntegerField()  # QQ 号
     nickname = CharField()  # 昵称
@@ -57,13 +37,10 @@ class User(BaseModel):
     card_changeable = BooleanField()  # 是否允许修改群名片
     shut_up_timestamp = BigIntegerField()  # 禁言到期时间
 
-    teach_time = DateTimeField(default=datetime.datetime.now)
-    use_time = DateTimeField(default=datetime.datetime(2000, 1, 1))
-
     class Meta:
-        table_name = "user"
+        table_name = "group_member"
 
-
+# https://docs.go-cqhttp.org/api/#获取群列表
 class Group(BaseModel):
     group_id = BigIntegerField()  # 群号
     group_name = CharField()  # 群名
@@ -82,5 +59,9 @@ def get_object(model, **kwargs):
     try:
         obj = model.get(**kwargs)
     except model.DoesNotExist:
-        obj = model.create(**kwargs)
+        # obj = model.create(**kwargs)
+        return
     return obj
+
+
+create_tables([Group, GroupMember])

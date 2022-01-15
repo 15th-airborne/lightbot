@@ -1,15 +1,63 @@
 import asyncio
 import aiohttp
 
+import log
 from event import Event
 import plugins
 from plugin_manager import all_plugins
 from api import Api
 
+import logging
+logger = logging.getLogger(__name__)
+from database.models import Group, GroupMember, get_object
+
 
 class Bot:
     def __init__(self):
         pass
+    
+    async def update_group_info(self):
+        get_group_list_api = Api(action='get_group_list')
+        resp = await self.do(get_group_list_api)
+
+        logger.info("\n-----------------updating group info---------------------\n")
+        logger.info(resp)
+
+        if resp.get('status') == 'ok':
+            group_list = resp.get('data')
+        else:
+            return
+
+        for group in group_list:
+            await self.update_group_member_info(group['group_id'])
+
+            if get_object(Group, group_id=group['group_id']) is not None:
+                logger.info("群 %s 已存在" % group['group_name'])
+                continue
+                
+            Group.create(**group)
+            logger.info("创建 %s" % group['group_name'])
+
+    async def update_group_member_info(self, group_id):
+        api = Api(action='get_group_member_list', group_id=group_id)
+        resp = await self.do(api)
+
+        logger.info("\n-----------------updating group member info---------------------\n")
+        logger.info(resp)
+
+        if resp.get('status') == 'ok':
+            member_list = resp.get('data')
+        else:
+            return
+
+        for member in member_list:
+            if get_object(GroupMember, group_id=group_id, user_id=member['user_id']):
+                logger.info("用户 %s 已存在" % member['card'])
+                continue
+
+            GroupMember.create(**member)
+            logger.info("创建用户 %s" % member['card'])
+
 
     async def do(self, action: Api):
         async with self.session.ws_connect('ws://127.0.0.1:6700/api') as ws:
@@ -23,6 +71,8 @@ class Bot:
             self.session = session
             async with self.session.ws_connect("ws://127.0.0.1:6700") as ws:
                 print('连接成功！')
+                await self.update_group_info()  # 更新群信息
+
                 while True:
                     event = Event(await ws.receive_json())
                     print(event)
