@@ -13,9 +13,13 @@ def image(file):
 def get_at_user_id(message):
     match = re.search(r"\[CQ:at,qq=(.*?)]", message)
     if match:
-        return match.group(1)
+        res = match.group(1)
+        try:
+            return int(res)
+        except ValueError:
+            return
 
 
 if __name__ == '__main__':
-    msg = "夯[CQ:at,qq=123123]"
+    msg = "夯[CQ:at,qq='or 1=1 --]"
     print(get_at_user_id(msg))
