@@ -3,7 +3,8 @@ import datetime
 from peewee import *
 
 import config
-
+import logging
+logger = logging.getLogger(__name__)
 
 # simple utility function to create tables
 def create_tables(tables):
@@ -17,6 +18,15 @@ database = MySQLDatabase(**config.DATABASE_PARAMS)
 class BaseModel(Model):
     class Meta:
         database = database
+
+    @classmethod
+    def get_obj(cls, **kwargs):
+        try:
+            obj = cls.get(**kwargs)
+        except cls.DoesNotExist:
+            # obj = model.create(**kwargs)
+            return
+        return obj
 
 # https://docs.go-cqhttp.org/api/#获取群成员列表
 class GroupMember(BaseModel):

@@ -8,7 +8,12 @@ import random
 from peewee import *
 
 from database import create_tables, BaseModel
+from database.models import GroupMember
+
 from utils import cq
+import logging
+logger = logging.getLogger(__name__)
+
 REBORN_REMAIN_TIME = 120  # 复活所需时间
 
 
@@ -83,21 +88,28 @@ class Player(BaseModel):
 
 
 def get_player(user_id, group_id):
-    print(user_id, group_id)
+    """ 只有存在群员表里的成员会被夯 """
+    logger.info(user_id, group_id)
     try:
         player = Player.get(user_id=user_id, group_id=group_id)
     except Player.DoesNotExist:
-        player = Player.create(user_id=user_id, group_id=group_id)
+        member = GroupMember.get_obj(user_id=user_id, group_id=group_id)
+        if member is not None:
+            player = Player.create(user_id=user_id, group_id=group_id)
+        else:
+            return
     return player
 
 
 def attack_someone_reply(attacker_user_id, defender_user_id, group_id):
-    if defender_user_id is None:
+    if not defender_user_id:
         return "找不到你要揍的人(长按要揍的人的头像艾特他)"
 
     attacker = get_player(attacker_user_id, group_id)
     defender = get_player(defender_user_id, group_id)
-
+    if attacker is None or defender is None:
+        return "无法夯不在群里的人!"
+        
     if attacker.is_dead():
         return f"{cq.at(attacker_user_id)}你都挂了还想揍人？{attacker.reborn_remain_time}秒后复活。"
     if defender.is_dead():

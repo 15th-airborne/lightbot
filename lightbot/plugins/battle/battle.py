@@ -34,7 +34,8 @@ class CheckStatusPlugin(GroupMessagePlugin):
             return
         
         player = get_player(self.user_id, self.group_id)
-        return player.status()
+        if player is not None:
+            return player.status()
 
     def get_user_id(self, event):
         user_id = cq.get_at_user_id(event['message'])
