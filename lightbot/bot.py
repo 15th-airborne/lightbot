@@ -74,28 +74,36 @@ class Bot:
                 await self.update_group_info()  # 更新群信息
 
                 while True:
-                    event = Event(await ws.receive_json())
-                    print(event)
+                    try:
+                        event = Event(await ws.receive_json())
+                        print(event)
 
-                    if event.is_group_message():
-                        res = await self.check_group_message_plugin(event)
-                        # if res:
-                        #     continue
+                        if event.is_group_message():
+                            res = await self.check_group_message_plugin(event)
+                            # if res:
+                            #     continue
 
-                        # answer = answer_question(event['message'])
-                        # if answer is not None:
-                        #     resp = await self.send_group_msg(event['group_id'], answer)
-                        #     print(resp)
-                        #     continue
+                            # answer = answer_question(event['message'])
+                            # if answer is not None:
+                            #     resp = await self.send_group_msg(event['group_id'], answer)
+                            #     print(resp)
+                            #     continue
 
-                    elif event.is_group_poke():
-                        pass
-                        # await bot.check_group_poke_command(event)
+                        elif event.is_group_poke():
+                            pass
+                            # await bot.check_group_poke_command(event)
 
-                        # texts = ['戳我干嘛！', '疼！', '别戳了别戳了']
-                        # ans = random.choice(texts)
-                        # resp = await self.send_group_msg(event['group_id'], ans)
-
+                            # texts = ['戳我干嘛！', '疼！', '别戳了别戳了']
+                            # ans = random.choice(texts)
+                            # resp = await self.send_group_msg(event['group_id'], ans)
+                    except Exception as e:
+                        api = Api(
+                            action="send_group_msg",
+                            group_id=self.group_id, 
+                            message="我炸了\n %s" % e
+                        )
+                        self.do(api)
+                        
     async def check_group_message_plugin(self, event):
         for plugin in all_plugins:
             api = plugin(event).api()

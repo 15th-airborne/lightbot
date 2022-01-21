@@ -6,6 +6,15 @@ from api import Api
 all_plugins = []
 
 
+class PluginManager:
+    def __init__(self):
+        self.plugins = []
+    
+    def add_plugins(self, plugins):
+        for plugin in plugins:
+            self.plugins.append(plugin)
+
+
 class GroupMessagePlugin:
     def __init__(self, event):
         self.message = event['message']
@@ -22,9 +31,12 @@ class GroupMessagePlugin:
 
     def api(self):
         reply = self.get_reply()
-        if reply is not None:
+        if reply is not None and reply != "":
             return Api(
                 action="send_group_msg",
                 group_id=self.group_id, 
                 message=reply
             )
+
+plugin_manager = PluginManager()
+add_plugins = plugin_manager.add_plugins

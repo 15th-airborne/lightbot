@@ -1,5 +1,11 @@
 from plugin_manager import GroupMessagePlugin
-from .models import get_player, attack_someone_reply
+from .models import (
+    get_player, 
+    attack_someone_reply, 
+    show_market, 
+    sign_reply,
+    buy_reply,
+)
 from utils import cq
 
 
@@ -30,10 +36,12 @@ class CheckStatusPlugin(GroupMessagePlugin):
     
 
     def get_reply(self):
-        if not self.message.startswith('查看状态'):
+        if not self.message.startswith('状态'):
             return
         
         player = get_player(self.user_id, self.group_id)
+        # if player.is_dead():
+        #     return "你挂了"
         if player is not None:
             return player.status()
 
@@ -73,12 +81,19 @@ class AttackSomeonePlugin(GroupMessagePlugin):
     #     res = super().is_activated()
     #     if not res:
     #         return False
-        
     #     for v in [self.sender, self.attacker_user_id, self.defender_user_id]:
     #         if v is None:
     #             return False
-                
     #     return True
+
+    def get_weapon_level(self):
+        words = self.message.split()
+        if len(words) >= 2:
+            if words[1].lower().startswith('q1'):
+                return 1
+            elif words[1].lower().startswith('q5'):
+                return 5
+        return 0
 
     def get_reply(self):
         if self.message.startswith('揍'):
@@ -88,9 +103,63 @@ class AttackSomeonePlugin(GroupMessagePlugin):
 
             # group_id = event['group_id']
             # print(attacker_user_id, defender_user_id, group_id)
-
-            reply = attack_someone_reply(self.attacker_user_id, self.defender_user_id, self.group_id)
+            weapon_level = self.get_weapon_level()
+            reply = attack_someone_reply(
+                self.attacker_user_id, 
+                self.defender_user_id, 
+                self.group_id, 
+                weapon_level
+            )
             return reply
 
     def get_defender_user_id(self):
         return cq.get_at_user_id(self.message)
+
+
+    def help(self):
+        return "功能: 输入揍@傻6 可以揍傻6，可以使用Q1或者Q5武器揍。\n" \
+               "格式1: 揍@傻6\n" \
+               "格式2: 揍@傻6 q5枪"
+
+
+class ShowMarketPlugin(GroupMessagePlugin):
+    def get_reply(self):
+        if self.message.startswith('商店'):
+            return show_market()
+
+
+class SignPlugin(GroupMessagePlugin):
+    def get_reply(self):
+        if self.message.startswith('双击'):
+            return sign_reply(self.user_id, self.group_id)
+
+
+class BuyPlugin(GroupMessagePlugin):
+    def get_item_name_and_num(self):
+        msg = self.message[1:]
+        words = msg.split()
+        if len(words) == 0:
+            return ""
+
+        item_name = words[0]
+        try:
+            if len(words) >= 2:
+                item_num = int(words[1])
+            else:
+                item_num = 1
+        except Exception as e:
+            item_num = 1
+
+        
+        return item_name, item_num
+
+    def get_reply(self):
+        if self.message.startswith('买'):
+            item_name, item_num = self.get_item_name_and_num()
+            if not item_name:
+                return ""
+
+            if item_num <= 0:
+                return "¿你故意找茬是吧?"
+
+            return buy_reply(self.user_id, self.group_id, item_name, item_num)
