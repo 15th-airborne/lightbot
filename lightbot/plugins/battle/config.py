@@ -1,4 +1,5 @@
-REBORN_REMAIN_TIME = 120  # 复活所需时间
+REBORN_REMAIN_TIME = 60 * 60 * 2  # 复活所需时间
+REBORN_SPEND = 50  # 买活价格
 FOODS = [
     {
         'name': 'q1面包',

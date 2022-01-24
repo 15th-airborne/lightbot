@@ -12,7 +12,9 @@ from peewee import *
 
 from database import create_tables, BaseModel
 from database.models import GroupMember
-from .config import REBORN_REMAIN_TIME, FOODS, WEAPONS
+from .config import (
+    REBORN_REMAIN_TIME, FOODS, WEAPONS, REBORN_SPEND
+)
 from utils import cq
 import logging
 logger = logging.getLogger(__name__)
@@ -81,6 +83,7 @@ class Player(BaseModel):
         if self.limit_refresh_date != today:
             self.food_limit = self.food_limit_max
             self.weapon_limit = self.weapon_limit_max
+            self.health = self.health_max
             self.limit_refresh_date = today
             self.save()
             return True
@@ -244,7 +247,10 @@ def attack_someone_reply(attacker_user_id, defender_user_id, group_id, weapon_le
     defender = get_player(defender_user_id, group_id)
     if attacker is None or defender is None:
         return "无法夯不在群里的人!"
-        
+
+    if attacker is defender:
+        return "不能夯自己!"
+
     if attacker.is_dead():
         return f"{cq.at(attacker_user_id)}你都挂了还想揍人？{attacker.reborn_remain_time}秒后复活。"
     if defender.is_dead():
@@ -286,7 +292,7 @@ def show_market():
 
     res += "其他:\n-------\n"
 
-    res += "活: 立即复活 (20g)\n"
+    res += "活: 立即复活 (%sg)\n" % REBORN_SPEND
     res += "输入: 买Q1枪 <数量>\n即可购买，不写数量默认买1个\n"
     return res
 
@@ -298,12 +304,11 @@ def sign_reply(user_id, group_id):
         is_sign = user.sign(gold_add)
         if not is_sign:
             return "今天已经签到过了!"
-        
+        user.refresh_limit()
         res = "签到成功！\n"
         res += user.field_status('生命值', user.health, user.health_max, add=2)
         res += user.field_status('攻击力', user.attack_min, user.attack_max, add=1)
         res += user.field_status('黄金', user.gold, add=gold_add)
-        user.refresh_limit()
         return res
     else:
         return "404 Not Found"
@@ -328,17 +333,17 @@ def buy_reply(user_id, group_id, item_name, item_num):
         if not user.is_dead():
             return "你又没挂"
 
-        if user.gold < 20:
+        if user.gold < REBORN_SPEND:
             return "你钱不足"
 
-        user.gold -= 20
+        user.gold -= REBORN_SPEND
         user.reborn()
         user.save()
-        return "你活了"
+        return "你活了" + user.field_status('黄金', user.gold, add=REBORN_SPEND)
 
     if user.is_dead():
         return "你挂了，买不了东西！"
-        
+
     item = get_item(item_name)
     if not item:
         return ""
