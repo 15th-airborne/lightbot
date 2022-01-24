@@ -94,7 +94,7 @@ class Player(BaseModel):
     def is_dead(self):
         """ 判断玩家是否阵亡 """
         if self.health <= 0:
-            if datetime.datetime.now() - self.dead_time < datetime.timedelta(seconds=60):
+            if datetime.datetime.now() - self.dead_time < datetime.timedelta(seconds=REBORN_REMAIN_TIME):
                 logger.info("阵亡中...")
                 return True
             else:
@@ -322,8 +322,7 @@ def get_item(item_name):
 def buy_reply(user_id, group_id, item_name, item_num):
     item_name = item_name.lower()
     user = get_player(user_id, group_id)
-    if user.is_dead():
-        return "你挂了，买不了东西！"
+    
 
     if item_name == "活":
         if not user.is_dead():
@@ -337,6 +336,9 @@ def buy_reply(user_id, group_id, item_name, item_num):
         user.save()
         return "你活了"
 
+    if user.is_dead():
+        return "你挂了，买不了东西！"
+        
     item = get_item(item_name)
     if not item:
         return ""
