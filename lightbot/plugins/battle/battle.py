@@ -1,3 +1,5 @@
+import random
+
 from plugin_manager import GroupMessagePlugin
 from .models import (
     get_player, 
@@ -7,6 +9,8 @@ from .models import (
     buy_reply,
 )
 from utils import cq
+import logging
+logger = logging.getLogger(__name__)
 
 
 # def get_user_id(event):
@@ -94,7 +98,7 @@ class AttackSomeonePlugin(GroupMessagePlugin):
             elif words[1].lower().startswith('q5'):
                 return 5
         return 0
-
+    
     def get_reply(self):
         if self.message.startswith('揍'):
             """ 攻击某人 """
@@ -103,6 +107,9 @@ class AttackSomeonePlugin(GroupMessagePlugin):
 
             # group_id = event['group_id']
             # print(attacker_user_id, defender_user_id, group_id)
+            if self.attacker_user_id == self.defender_user_id:
+                return "不能夯自己!"
+                
             weapon_level = self.get_weapon_level()
             reply = attack_someone_reply(
                 self.attacker_user_id, 
@@ -137,9 +144,10 @@ class SignPlugin(GroupMessagePlugin):
 class BuyPlugin(GroupMessagePlugin):
     def get_item_name_and_num(self):
         msg = self.message[1:]
+
         words = msg.split()
         if len(words) == 0:
-            return ""
+            return "", ""
 
         item_name = words[0]
         try:
@@ -163,3 +171,58 @@ class BuyPlugin(GroupMessagePlugin):
                 return "¿你故意找茬是吧?"
 
             return buy_reply(self.user_id, self.group_id, item_name, item_num)
+
+
+class LuckDrawPlugins(GroupMessagePlugin):
+    def get_reply(self):
+        if self.message.startswith('抽奖'):
+            user = get_player(self.user_id, self.group_id)
+            logger.info("抽奖")
+            # if user.is_dead():
+            #     return "你挂了, 抽不了奖"
+
+            if user.gold < 100:
+                return f"你钱不足，需要100g，当前{user.gold}"
+            
+            user.gold -= 100
+            add_gold = random.choices([1000, 500, 100, 50, 10], weights=[0.01, 0.03, 0.5, 0.41, 0.05], k=2)[0]
+            if add_gold == 100:
+                add_gold = random.randint(60, 140)
+
+            user.gold += add_gold
+            user.save()
+
+            return f"花费100g抽奖\n抽到了{add_gold}g, 当前{user.gold}g"
+
+def item_level(word):
+    if word.lower().startswith('q1'):
+        return 1
+    elif word.lower().startswith('q5'):
+        return 5
+    
+
+class EatPlugins(GroupMessagePlugin):
+    
+    def get_food_level(self):
+        words = self.message.split()
+
+        if len(words) >= 2:
+            return item_level(words[1])
+        return 0
+
+    def get_reply(self):
+        if self.message.startswith('吃'):
+            player = get_player(self.user_id, self.group_id)
+
+            if player.food_limit == 0:
+                return "食物额度不足"
+
+            
+
+
+        return super().get_reply()
+
+
+class RankPlugins(GroupMessagePlugin):
+    pass
+

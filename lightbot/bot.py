@@ -99,10 +99,11 @@ class Bot:
                     except Exception as e:
                         api = Api(
                             action="send_group_msg",
-                            group_id=self.group_id, 
+                            group_id=event.get('group_id'), 
                             message="我炸了\n %s" % e
                         )
-                        self.do(api)
+                        logger.error(str(e))
+                        # await self.do(api)
                         
     async def check_group_message_plugin(self, event):
         for plugin in all_plugins:

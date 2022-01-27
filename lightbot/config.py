@@ -19,6 +19,8 @@ DATABASE_PARAMS = {
     "port": 3306
 }
 
+QQ = 323566263
+
 
 if __name__ == '__main__':
     print(BASE_PATH)
