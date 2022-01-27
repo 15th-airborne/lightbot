@@ -4,15 +4,15 @@ FOODS = [
     {
         'name': 'q1面包',
         'level': 1,
-        'recover': 10,
-        'price': 1,
+        'recover': 2,
+        'price': 5,
 
     },
     {
         'name': 'q5面包',
         'level': 5,
-        'recover': 50,
-        'price': 10
+        'recover': 10,
+        'price': 50
     }
 ]
 

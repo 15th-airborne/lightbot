@@ -185,7 +185,7 @@ class LuckDrawPlugins(GroupMessagePlugin):
                 return f"你钱不足，需要100g，当前{user.gold}"
             
             user.gold -= 100
-            add_gold = random.choices([1000, 500, 100, 50, 10], weights=[0.01, 0.03, 0.5, 0.41, 0.05], k=2)[0]
+            add_gold = random.choices([1000, 500, 100, 50, 10], weights=[0.01, 0.03, 0.5, 0.41, 0.05], k=1)[0]
             if add_gold == 100:
                 add_gold = random.randint(60, 140)
 
@@ -194,28 +194,73 @@ class LuckDrawPlugins(GroupMessagePlugin):
 
             return f"花费100g抽奖\n抽到了{add_gold}g, 当前{user.gold}g"
 
-def item_level(word):
+def item_level(word) -> int:
     if word.lower().startswith('q1'):
         return 1
     elif word.lower().startswith('q5'):
         return 5
+
+    return 1
     
 
 class EatPlugins(GroupMessagePlugin):
     
-    def get_food_level(self):
-        words = self.message.split()
+    def get_food_level_and_num(self):
+        words = self.message.lower().split()
+        if len(words) == 1:
+            num = 1
+        else:
+            try:
+                num = int(words[1])
+            except ValueError:
+                num = 1
+        
+        if 'q1' in words[0]:
+            level = 1
+        elif 'q5' in words[0]:
+            level = 5
+        else:
+            level = 1
 
-        if len(words) >= 2:
-            return item_level(words[1])
-        return 0
+        return level, num
 
     def get_reply(self):
         if self.message.startswith('吃'):
             player = get_player(self.user_id, self.group_id)
 
-            if player.food_limit == 0:
+            level, num = self.get_food_level_and_num()
+            if num <= 0:
+                return "你是故意找茬是吧？"
+
+            if player.food_limit < num:
                 return "食物额度不足"
+
+            if level == 1 and player.q1_food >= num:
+                player.q1_food -= num
+                energy = 2 * num
+            
+            elif level == 5 and player.q5_food >= num:
+                player.q5_food -= num
+                energy = 10 * num
+            else:
+                return f"Q{level}面包不足"
+            
+            res = f"使用{num}个Q{level}面包, 体力+{energy}\n"\
+
+            if player.energy + energy > player.energy_limit:
+                res += f"使用失败！使用后超出体力上限！\n"\
+                       f"当前体力: ({player.energy}/{player.energy_limit})"
+                return res
+                       
+
+            player.energy += energy
+            player.food_limit -= num
+            player.save()
+            
+            res += player.field_status("体力", player.energy, player.energy_limit, add=energy)
+            return res
+            
+
 
             
 

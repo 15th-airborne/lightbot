@@ -225,9 +225,9 @@ class Player(BaseModel):
         res += self.field_status('黄金', self.gold)
         res += self.field_status('Q1枪', self.q1_weapon)
         res += self.field_status('Q5枪', self.q5_weapon)
-        # res += self.field_status('Q1面包', self.q1_food)
-        # res += self.field_status('Q5面包', self.q5_food)
-        # res += self.field_status('食物额度', self.food_limit, self.food_limit_max)
+        res += self.field_status('Q1面包', self.q1_food)
+        res += self.field_status('Q5面包', self.q5_food)
+        res += self.field_status('食物额度', self.food_limit, self.food_limit_max)
 
         return res
 
@@ -400,7 +400,7 @@ def show_market():
     res = ""
     res += "食物:\n-------\n"
     for food in FOODS:
-        res += f"Q{food['level']}面包: 回血+{food['recover']} ({food['price']}g)\n"
+        res += f"Q{food['level']}面包: 体力+{food['recover']} ({food['price']}g)\n"
 
     res += "武器:\n-------\n"
     for weapon in WEAPONS:
