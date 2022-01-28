@@ -13,7 +13,8 @@ from peewee import *
 from database import create_tables, BaseModel
 from database.models import GroupMember
 from .params import (
-    REBORN_REMAIN_TIME, FOODS, WEAPONS, REBORN_SPEND
+    REBORN_REMAIN_TIME, FOODS, WEAPONS, REBORN_SPEND,
+    ATTACK_COLD_TIME
 )
 from utils import cq
 import logging
@@ -313,9 +314,9 @@ def attack_someone_reply(attacker_user_id, defender_user_id, group_id, weapon_le
     
     # 冷却判定
     now = datetime.datetime.now()
-    d = (now - attacker.last_hit_time).seconds
-    if d <= 10:
-        return "攻击还有%s秒冷却" % (10 - d)
+    d = (now - attacker.last_hit_time).total_seconds()
+    if d <= ATTACK_COLD_TIME:
+        return "攻击还有%.3f秒冷却" % (ATTACK_COLD_TIME - d)
 
     attacker.refresh_status()
     defender.refresh_status()
