@@ -3,10 +3,7 @@
 
 """
 import datetime
-from email.policy import default
 import random
-from this import d
-from xmlrpc.client import MININT
 
 from peewee import *
 
@@ -194,17 +191,24 @@ class Player(BaseModel):
     #     defender.save()
     #     self.save()
     #     return damage
+    @staticmethod
+    def attr_change(name, a):
+        pass
+
 
     @staticmethod
-    def field_status(name, value1, value2=None, add=0, unit=''):
+    def field_status(name, *values, add=0, unit=''):
         add_msg = ""
         if add != 0:
-            flag = "+" if add >= 0 else "-"
+            flag = "+" if add >= 0 else ""
             add_msg += f" ({flag}{add})"
-        if value2 is not None:
-            return f"{name}: {value1}/{value2}{add_msg}\n"
+        values = [str(v) + unit for v in values]
+        values = "/".join(values)
 
-        return f"{name}: {value1}{unit}{add_msg}\n"
+        return f"{name}: {values}{add_msg}\n"
+
+    def kda_status(self):
+        return f"击杀/死亡: {self.kill}/{self.dead}"
 
     def status(self):
         self.refresh_status()
@@ -277,6 +281,9 @@ class Player(BaseModel):
         return dt.strftime("%X")
 
 
+
+
+
 def foo(user_id, group_id):
     for row in Player.select(Player, Equipment).join(Equipment).where(user_id=user_id, group_id=group_id).dicts():
         pass
@@ -298,10 +305,8 @@ def get_player(user_id, group_id):
 def attack_someone_reply(attacker_user_id, defender_user_id, group_id, weapon_level=0):
     res = ""
 
-
     if not defender_user_id:
         return "找不到你要夯的人(长按头像)"
-
 
     attacker = get_player(attacker_user_id, group_id)
     defender = get_player(defender_user_id, group_id)

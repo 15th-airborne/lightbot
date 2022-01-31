@@ -173,26 +173,26 @@ class BuyPlugin(GroupMessagePlugin):
             return buy_reply(self.user_id, self.group_id, item_name, item_num)
 
 
-class LuckDrawPlugins(GroupMessagePlugin):
-    def get_reply(self):
-        if self.message.startswith('抽奖'):
-            user = get_player(self.user_id, self.group_id)
-            logger.info("抽奖")
-            # if user.is_dead():
-            #     return "你挂了, 抽不了奖"
+# class LuckDrawPlugins(GroupMessagePlugin):
+#     def get_reply(self):
+#         if self.message.startswith('抽奖'):
+#             user = get_player(self.user_id, self.group_id)
+#             logger.info("抽奖")
+#             if user.is_dead():
+#                 return "你挂了, 抽不了奖"
 
-            if user.gold < 100:
-                return f"你钱不足，需要100g，当前{user.gold}"
+#             if user.gold < 100:
+#                 return f"你钱不足，需要100g，当前{user.gold}"
             
-            user.gold -= 100
-            add_gold = random.choices([1000, 500, 100, 50, 10], weights=[0.01, 0.03, 0.5, 0.41, 0.05], k=1)[0]
-            if add_gold == 100:
-                add_gold = random.randint(60, 140)
+#             user.gold -= 100
+#             add_gold = random.choices([1000, 500, 100, 50, 10], weights=[0.01, 0.03, 0.5, 0.41, 0.05], k=1)[0]
+#             if add_gold == 100:
+#                 add_gold = random.randint(60, 140)
 
-            user.gold += add_gold
-            user.save()
+#             user.gold += add_gold
+#             user.save()
 
-            return f"花费100g抽奖\n抽到了{add_gold}g, 当前{user.gold}g"
+#             return f"花费100g抽奖\n抽到了{add_gold}g, 当前{user.gold}g"
 
 def item_level(word) -> int:
     if word.lower().startswith('q1'):
@@ -204,7 +204,6 @@ def item_level(word) -> int:
     
 
 class EatPlugins(GroupMessagePlugin):
-    
     def get_food_level_and_num(self):
         words = self.message.lower().split()
         if len(words) == 1:
@@ -227,6 +226,8 @@ class EatPlugins(GroupMessagePlugin):
     def get_reply(self):
         if self.message.startswith('吃'):
             player = get_player(self.user_id, self.group_id)
+            if player.is_dead():
+                return "你挂了，吃不了。"
 
             level, num = self.get_food_level_and_num()
             if num <= 0:

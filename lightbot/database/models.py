@@ -74,4 +74,21 @@ def get_object(model, **kwargs):
     return obj
 
 
-create_tables([Group, GroupMember])
+# 公共变量数据库
+class PublicVariable(BaseModel):
+    user_id = BigIntegerField()
+    group_id = BigIntegerField()
+
+    name = CharField()  # 变量名
+    value = FloatField()  # 变量值
+    c_time = TimestampField()  # 修改时间
+
+    @classmethod
+    def get_obj(cls, user_id, group_id, name):
+        try:
+            obj = cls.get(user_id=user_id, group_id=group_id, name=name)
+        except cls.DoesNotExist:
+            obj = cls.create(user_id=user_id, group_id=group_id, name=name, value=0)
+        return obj
+
+create_tables([Group, GroupMember, PublicVariable])
