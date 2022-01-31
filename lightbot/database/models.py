@@ -76,7 +76,7 @@ def get_object(model, **kwargs):
 
 # 公共变量数据库
 class PublicVariable(BaseModel):
-    user_id = BigIntegerField()
+    # user_id = BigIntegerField()
     group_id = BigIntegerField()
 
     name = CharField()  # 变量名
@@ -84,11 +84,11 @@ class PublicVariable(BaseModel):
     c_time = TimestampField()  # 修改时间
 
     @classmethod
-    def get_obj(cls, user_id, group_id, name):
+    def get_obj(cls, group_id, name):
         try:
-            obj = cls.get(user_id=user_id, group_id=group_id, name=name)
+            obj = cls.get(group_id=group_id, name=name)
         except cls.DoesNotExist:
-            obj = cls.create(user_id=user_id, group_id=group_id, name=name, value=0)
+            obj = cls.create(group_id=group_id, name=name, value=0)
         return obj
 
 create_tables([Group, GroupMember, PublicVariable])

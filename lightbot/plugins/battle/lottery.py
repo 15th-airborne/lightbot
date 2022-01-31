@@ -31,7 +31,7 @@ class LotteryPlugin(GroupMessagePlugin):
         logger.info(f"{self.user_id} 抽奖")
 
         player = get_player(self.user_id, self.group_id)
-        bonus_pool = PublicVariable.get_obj(player.user_id, player.group_id, name='奖金池')
+        bonus_pool = PublicVariable.get_obj(player.group_id, name='奖金池')
 
         # if player.is_dead():
         #     return "你挂了, 抽不了奖"

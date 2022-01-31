@@ -381,7 +381,9 @@ def attack_someone_reply(attacker_user_id, defender_user_id, group_id, weapon_le
           f"造成了{damage}点伤害{critical_msg}\n"
 
     if defender.is_dead():
-        gold = random.randint(5, 15)
+        gold = random.randint(15, 30)
+        gold += defender.num_sign * 3
+
         attacker.gold += gold
         attacker.kill += 1
         defender.dead += 1
