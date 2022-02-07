@@ -17,10 +17,11 @@ logger.info("加载捐赠模块")
 
 class DonateRecord(BaseModel):
     group_id = BigIntegerField()  # 群号
-    user_id = BigIntegerField()  # QQ
+    sender_id = BigIntegerField()  # 发送人QQ
+    receiver_id = BigIntegerField()  # 接收人QQ
 
-    bonus = IntegerField()  # 转的钱
-    goods = CharField()  # 转的物资
+    num = IntegerField()  # 转的钱
+    item = CharField(default=None)  # 转的东西
     c_time = DateTimeField(default=datetime.datetime.now)  # 转账时间
 
 
@@ -55,6 +56,8 @@ class DonatePlugin(GroupMessagePlugin):
         player = get_player(self.user_id, self.group_id)
         receiver_id = cq.get_at_user_id(self.message)
         receiver = get_player(receiver_id, self.group_id)
+        if int(receiver_id) == int(self.user_id):
+            return "不能d给自己！"
 
         if not receiver:
             return "找不到收货人"
@@ -62,12 +65,12 @@ class DonatePlugin(GroupMessagePlugin):
         # 上一条捐赠记录
         last_donate_record = DonateRecord \
             .select() \
-            .where(DonateRecord.group_id==self.group_id, DonateRecord.user_id==self.user_id) \
+            .where(DonateRecord.group_id==self.group_id, DonateRecord.sender_id==self.user_id) \
             .order_by(DonateRecord.c_time.desc()) \
             .get_or_none()
         
         # 冷却判定
-        if last_donate_record:
+        if last_donate_record is not None:
             now = datetime.datetime.now()
             d = (now - last_donate_record.c_time).total_seconds()
             if d <= DONATE_COOLDOWN:
@@ -90,6 +93,14 @@ class DonatePlugin(GroupMessagePlugin):
                 with database.atomic() as t:
                     player.gold -= num
                     receiver.gold += num
+                    DonateRecord.create(
+                        group_id=self.group_id, 
+                        sender_id=player.user_id, 
+                        receiver_id=receiver.user_id,
+                        num=num, 
+                        item=item
+                    )
+                    
                     player.save()
                     receiver.save()
 

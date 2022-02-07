@@ -1,7 +1,7 @@
 REBORN_REMAIN_TIME = 60 * 60 * 2  # 复活所需时间
 REBORN_SPEND = 50  # 买活价格
 ATTACK_COLD_TIME = 3  # 攻击冷却时间
-DONATE_COOLDOWN = 10  # 捐钱冷却时间
+DONATE_COOLDOWN = 60  # 捐钱冷却时间
 FOODS = [
     {
         'name': 'q1面包',
