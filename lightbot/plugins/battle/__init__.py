@@ -1,6 +1,7 @@
 
 from .battle import (
-    CheckStatusPlugin, 
+    CheckStatusPlugin,
+    GoodsStatusPlugin,
     AttackSomeonePlugin, 
     ShowMarketPlugin,
     SignPlugin,
@@ -13,6 +14,7 @@ from .lottery import LotteryPlugin
 from plugin_manager import all_plugins
 
 all_plugins.append(CheckStatusPlugin)
+all_plugins.append(GoodsStatusPlugin)
 all_plugins.append(AttackSomeonePlugin)
 all_plugins.append(ShowMarketPlugin)
 all_plugins.append(SignPlugin)

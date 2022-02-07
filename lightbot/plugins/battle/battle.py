@@ -56,6 +56,17 @@ class CheckStatusPlugin(GroupMessagePlugin):
         return user_id
 
 
+class GoodsStatusPlugin(CheckStatusPlugin):
+    def get_reply(self):
+        if not self.message.startswith('物资'):
+            return
+        
+        player = get_player(self.user_id, self.group_id)
+        # if player.is_dead():
+        #     return "你挂了"
+        if player is not None:
+            return player.goods_status()
+
 # @add_command_temp(keywords=["揍"])
 # async def attack_someone(bot, event):
 #     """ 攻击某人 """

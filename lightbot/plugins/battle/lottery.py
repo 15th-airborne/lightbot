@@ -6,6 +6,8 @@ from peewee import *
 from database import create_tables, BaseModel, PublicVariable, database
 from plugin_manager import GroupMessagePlugin
 from utils import cq
+from config import QQ
+
 
 from .models import get_player
 import logging
@@ -32,6 +34,8 @@ class LotteryPlugin(GroupMessagePlugin):
 
         player = get_player(self.user_id, self.group_id)
         bonus_pool = PublicVariable.get_obj(player.group_id, name='奖金池')
+        xiaoyue = get_player(QQ, self.group_id)
+
 
         # if player.is_dead():
         #     return "你挂了, 抽不了奖"
@@ -41,7 +45,9 @@ class LotteryPlugin(GroupMessagePlugin):
 
         with database.atomic() as transaction:
             player.gold -= 100
-            bonus_pool.value += 100
+            bonus_pool.value += 80
+            xiaoyue.gold += 20
+
             total_bonus = bonus_pool.value
             get_gold = 0  # 获得的奖金
             # 抽到了奖品等级
@@ -63,7 +69,7 @@ class LotteryPlugin(GroupMessagePlugin):
                 bonus_pool.value -= get_gold
             
             elif bonus_level == 4:
-                msg = "获得5把Q5枪！"
+                msg = "获得2把Q5枪！"
                 player.q5_weapon += 5
             
             elif bonus_level == 5:
@@ -71,7 +77,7 @@ class LotteryPlugin(GroupMessagePlugin):
                 player.q1_weapon += 5
             
             elif bonus_level == 6:
-                msg = "获得5个Q5面包！"
+                msg = "获得2个Q5面包！"
                 player.q5_food += 5
             
             elif bonus_level == 7:
@@ -82,6 +88,7 @@ class LotteryPlugin(GroupMessagePlugin):
 
             bonus_pool.save()
             player.save()
+            xiaoyue.save()
             res = f"{cq.at(self.user_id)}\n花费100g抽奖\n{msg}\n"
             res += player.field_status("黄金", player.gold, add=get_gold)
             res += f"当前奖池: {bonus_pool.value}g"

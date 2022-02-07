@@ -197,7 +197,7 @@ class Player(BaseModel):
 
 
     @staticmethod
-    def field_status(name, *values, add=0, unit=''):
+    def field_status(name, *values, add=0, unit='', end='\n'):
         add_msg = ""
         if add != 0:
             flag = "+" if add >= 0 else ""
@@ -205,7 +205,7 @@ class Player(BaseModel):
         values = [str(v) + unit for v in values]
         values = "/".join(values)
 
-        return f"{name}: {values}{add_msg}\n"
+        return f"{name}: {values}{add_msg}{end}"
 
     def kda_status(self):
         return f"击杀/死亡: {self.kill}/{self.dead}"
@@ -218,22 +218,33 @@ class Player(BaseModel):
         if self.is_dead():
             res += f"阵亡中...({self.reborn_remain_time}复活)\n"
 
-        res += self.field_status('生命值', self.health, self.health_max)
-        res += self.field_status('攻击力', self.attack_min, self.attack_max)
-        res += self.field_status('命中率', self.hit_rate * 100, unit="%")
-        res += self.field_status('闪避率', self.evade * 100, unit="%")
-        res += self.field_status('暴击率', self.critical * 100, unit="%")
-        res += self.field_status('击杀数', self.kill)
-        res += self.field_status('阵亡数', self.dead)
-        res += self.field_status('体力值', self.energy, self.energy_limit)
-
+        res += self.field_status('生命', self.health, self.health_max, end=" ")
+        res += self.field_status('体力', self.energy, self.energy_limit)
+        res += self.field_status('攻击', self.attack_min, self.attack_max)
+        res += self.field_status("闪\命\暴", self.evade * 100, self.hit_rate * 100, self.critical * 100, unit="%")
+        res += self.field_status("击杀\阵亡", self.kill, self.dead)
         res += self.field_status('黄金', self.gold)
-        res += self.field_status('Q1枪', self.q1_weapon)
-        res += self.field_status('Q5枪', self.q5_weapon)
-        res += self.field_status('Q1面包', self.q1_food)
-        res += self.field_status('Q5面包', self.q5_food)
-        res += self.field_status('食物额度', self.food_limit, self.food_limit_max)
 
+        # res += self.field_status('命中率', self.hit_rate * 100, unit="%")
+        # res += self.field_status('闪避率', self.evade * 100, unit="%")
+        # res += self.field_status('暴击率', self.critical * 100, unit="%")
+        # res += self.field_status('击杀数', self.kill)
+        # res += self.field_status('阵亡数', self.dead)
+       
+        # res += self.field_status('Q1枪', self.q1_weapon)
+        # res += self.field_status('Q5枪', self.q5_weapon)
+        # res += self.field_status('Q1面包', self.q1_food)
+        # res += self.field_status('Q5面包', self.q5_food)
+        # res += self.field_status('食物额度', self.food_limit, self.food_limit_max)
+
+        return res
+
+    def goods_status(self):
+        res = ""
+        res += self.field_status('黄金', self.gold)
+        res += self.field_status('Q1枪/面包', self.q1_weapon, self.q1_food)
+        res += self.field_status('Q5枪/面包', self.q5_weapon, self.q5_food)
+        res += self.field_status('食物额度', self.food_limit, self.food_limit_max)
         return res
 
     # 双击
