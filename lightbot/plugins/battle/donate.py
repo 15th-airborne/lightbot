@@ -46,11 +46,12 @@ class DonatePlugin(GroupMessagePlugin):
         return num, item
 
     def get_reply(self):
-        logger.info(f"{self.user_id} 转账")
+        
 
         if not self.message.lower().startswith('d'):
             return
-
+            
+        logger.info(f"{self.user_id} 转账")
         player = get_player(self.user_id, self.group_id)
         receiver_id = cq.get_at_user_id(self.message)
         receiver = get_player(receiver_id, self.group_id)
@@ -61,7 +62,7 @@ class DonatePlugin(GroupMessagePlugin):
         # 上一条捐赠记录
         last_donate_record = DonateRecord \
             .select() \
-            .where(group_id=self.group_id, user_id=self.user_id) \
+            .where(DonateRecord.group_id==self.group_id, DonateRecord.user_id==self.user_id) \
             .order_by(DonateRecord.c_time.desc()) \
             .get_or_none()
         
@@ -88,7 +89,7 @@ class DonatePlugin(GroupMessagePlugin):
             if player.gold >= num:
                 with database.atomic() as t:
                     player.gold -= num
-                    receiver += num
+                    receiver.gold += num
                     player.save()
                     receiver.save()
 
