@@ -1,6 +1,7 @@
 REBORN_REMAIN_TIME = 60 * 60 * 2  # 复活所需时间
 REBORN_SPEND = 50  # 买活价格
 ATTACK_COLD_TIME = 3  # 攻击冷却时间
+DONATE_COOLDOWN = 10  # 捐钱冷却时间
 FOODS = [
     {
         'name': 'q1面包',
@@ -37,6 +38,9 @@ WEAPONS = [
         'price': 10,
     },
 ]
+
+# 物资名称
+GOODS_NAMES = {'g', '面包', '枪'}  # g表示黄金
 
 # 装备类型
 EQUIP_TYPES = ['helmet', 'armor', 'shoes']

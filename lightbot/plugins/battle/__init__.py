@@ -10,6 +10,7 @@ from .battle import (
 )
 
 from .lottery import LotteryPlugin
+from .donate import DonatePlugin
 
 from plugin_manager import all_plugins
 
@@ -22,5 +23,6 @@ all_plugins.append(BuyPlugin)
 all_plugins.append(EatPlugins)
 
 all_plugins.append(LotteryPlugin)
+all_plugins.append(DonatePlugin)
 
 

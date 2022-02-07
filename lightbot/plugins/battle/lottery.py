@@ -20,7 +20,11 @@ class LotteryRecord(BaseModel):
     user_id = BigIntegerField()  # QQ
 
     bonus = IntegerField()  # 抽奖获得的奖金
+    goods = CharField()  # 抽奖获得的物资
     c_time = DateTimeField(default=datetime.datetime.now)  # 抽奖时间
+
+
+create_tables([LotteryRecord])
 
 
 class LotteryPlugin(GroupMessagePlugin):
@@ -50,6 +54,7 @@ class LotteryPlugin(GroupMessagePlugin):
 
             total_bonus = bonus_pool.value
             get_gold = 0  # 获得的奖金
+            get_goods = None  # 获得的物资
             # 抽到了奖品等级
             bonus_level = random.choices([1, 2, 3, 4, 5, 6, 7], weights=[0.01, 0.1, 0.49, 0.1, 0.1, 0.1, 0.1])[0]
             
@@ -71,21 +76,32 @@ class LotteryPlugin(GroupMessagePlugin):
             elif bonus_level == 4:
                 msg = "获得2把Q5枪！"
                 player.q5_weapon += 5
+                get_goods = '2xq5枪'
             
             elif bonus_level == 5:
                 msg = "获得5把Q1枪！"
                 player.q1_weapon += 5
+                get_goods = '5xq1枪'
             
             elif bonus_level == 6:
                 msg = "获得2个Q5面包！"
                 player.q5_food += 5
+                get_goods = '2xq5面包'
             
             elif bonus_level == 7:
                 msg = "获得5个Q1面包！"
                 player.q1_food += 5
-            
+                get_goods = '5xq1面包'
+
             player.gold += get_gold
 
+            LotteryRecord.create(
+                group_id=self.group_id, 
+                user_id=self.user_id, 
+                bonues=get_gold, 
+                godds=get_goods
+            )
+            
             bonus_pool.save()
             player.save()
             xiaoyue.save()
@@ -93,8 +109,8 @@ class LotteryPlugin(GroupMessagePlugin):
             res += player.field_status("黄金", player.gold, add=get_gold)
             res += f"当前奖池: {bonus_pool.value}g"
             return  res
-            
-            
+
+
 
 # class LuckDrawPlugins(GroupMessagePlugin):
 #     def get_reply(self):
