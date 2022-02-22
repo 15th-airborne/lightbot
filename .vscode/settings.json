@@ -1,0 +1,12 @@
+{
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.testing.cwd": "/projects/lightbot/lightbot",
+    "python.testing.unittestArgs": [
+        "-v",
+        "-s",
+        "tests",
+        "-p",
+        "test_*.py"
+    ]
+}
