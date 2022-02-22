@@ -27,7 +27,7 @@ def add_question_answer(user_id, group_id, question, answer):
         # question = get_image_file_name(question)
         # answer = get_image_answer(answer)
         qa = QuestionAnswer.get(question=question, answer=answer)
-        if qa.delete:
+        if qa.delete == True:
             qa.delete = False
             qa.save()
             return "我学会了！"

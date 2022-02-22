@@ -7,10 +7,13 @@ from .battle import (
     SignPlugin,
     BuyPlugin,
     EatPlugins,
+    AddAttributePlugin,
+    CheckAttributePlugin,
+    SupplyPlugin,
 )
 
 from .lottery import LotteryPlugin
-from .donate import DonatePlugin
+# from .donate import DonatePlugin
 
 from plugin_manager import all_plugins
 
@@ -23,6 +26,8 @@ all_plugins.append(BuyPlugin)
 all_plugins.append(EatPlugins)
 
 all_plugins.append(LotteryPlugin)
-all_plugins.append(DonatePlugin)
+# all_plugins.append(DonatePlugin)
 
-
+all_plugins.append(AddAttributePlugin)
+all_plugins.append(CheckAttributePlugin)
+all_plugins.append(SupplyPlugin)

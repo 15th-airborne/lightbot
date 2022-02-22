@@ -1,5 +1,6 @@
+import datetime
+
 from peewee import *
-from logging import critical
 from .params import EQUIP_TYPES, ATTRIBUTES, EQUIP_LEVEL
 import random
 
@@ -34,13 +35,25 @@ class Equipment:
 
 
 class Equipment:
+    user_id = BigIntegerField()  # 所属人(Q号)
+    group_id = BigIntegerField()  # 所属群
     kind = CharField(max_length=30)  # 类型
+    rarity = IntegerField()  # 稀有度
+    level = IntegerField(default=1)  # 强化等级
 
-    attr1 = CharField(max_length=30)  # 属性1
-    value1 = FloatField()
+    base_attr1 = CharField(max_length=30)  # 基础属性1
+    base_value1 = FloatField()
 
-    attr2 = CharField(max_length=30)  # 属性1
+    base_attr2 = CharField(max_length=30)  # 基础属性2
+    base_value2 = FloatField()
+
+    attr1 = CharField(max_length=30)  # 额外属性1
+    value1 = FloatField() 
+
+    attr2 = CharField(max_length=30)  # 额外属性2
     value2 = FloatField()
+
+    c_time = DateTimeField(default=datetime.datetime.now)  # 创建时间
 
 
 

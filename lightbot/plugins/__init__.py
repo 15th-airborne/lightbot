@@ -7,5 +7,5 @@ import plugins.curse
 import plugins.确实
 
 import plugins.teacher
-import plugins.setu
+# import plugins.setu
 

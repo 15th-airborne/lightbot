@@ -1,4 +1,6 @@
 import random
+from database import database
+from plugins.battle.helper import check_num
 
 from plugin_manager import GroupMessagePlugin
 from .models import (
@@ -83,7 +85,6 @@ class GoodsStatusPlugin(CheckStatusPlugin):
 #     return cq.get_at_user_id(message)
 
 # 查看玩家状态
-
 
 class AttackSomeonePlugin(GroupMessagePlugin):
     def __init__(self, event):
@@ -249,11 +250,11 @@ class EatPlugins(GroupMessagePlugin):
 
             if level == 1 and player.q1_food >= num:
                 player.q1_food -= num
-                energy = 2 * num
+                energy = 1 * num
             
             elif level == 5 and player.q5_food >= num:
                 player.q5_food -= num
-                energy = 10 * num
+                energy = 5 * num
             else:
                 return f"Q{level}面包不足"
             
@@ -272,14 +273,120 @@ class EatPlugins(GroupMessagePlugin):
             res += player.field_status("体力", player.energy, player.energy_limit, add=energy)
             return res
             
-
-
-            
-
-
-        return super().get_reply()
+        # return super().get_reply()
 
 
 class RankPlugins(GroupMessagePlugin):
     pass
 
+
+# class AttributePlugin(GroupMessagePlugin):
+#     def get_reply(self):
+#         if self.message == '属性':
+#             player = get_player(self.user_id, self.group_id)
+#             return f"未分配属性点:{player.curr_attr_points}\n"
+from .params import ATTRIBUTE_POINTS
+class AddAttributePlugin(GroupMessagePlugin):
+    KEYWORDS = ['生命', '攻击', '命中', '暴击', '闪避', '反击']
+
+    # 获取要加的属性和点数
+    def get_attr_and_value(self):
+        words = self.message.split()
+
+        if len(words) < 2:
+            return "", 0
+
+        attr = words[0][1:]
+        value = check_num(words[1])
+        return attr, value
+
+    def get_reply(self):
+        if not self.message.startswith('加'):
+            return 
+        player = get_player(self.user_id, self.group_id)
+        attr, value = self.get_attr_and_value()
+        if attr not in self.KEYWORDS:
+            return ""
+        
+        if value <= 0:
+            return ""
+
+        if value > player.curr_attr_points:
+            return f"可用属性点不足!\n可用:{player.curr_attr_points}, 要用: {value}"
+            
+        res = ""
+        with database.atomic() as transaction:
+            if attr == '生命':
+                player._health_max += value
+                res += player.field_status('最大生命值', player.health_max, 
+                                            add=ATTRIBUTE_POINTS['health_max'] * value)
+
+            elif attr == '攻击':
+                player._damage += value
+                res += player.field_status('基础伤害', player.damage, 
+                                            add=ATTRIBUTE_POINTS['damage'] * value)
+
+            elif attr == '命中':
+                player._hit_rate += value
+                res += player.field_status('命中', player.hit_rate * 100, unit='%',
+                                            add=ATTRIBUTE_POINTS['hit_rate'] * value * 100)
+
+            elif attr == '暴击':
+                player._critical += value
+                res += player.field_status('暴击', player.critical * 100, unit='%',
+                                            add=ATTRIBUTE_POINTS['critical'] * value * 100)
+
+            elif attr == '闪避':
+                player._evade += value
+                res += player.field_status('闪避', player.evade * 100, unit='%',
+                                            add=ATTRIBUTE_POINTS['evade'] * value * 100)
+
+            elif attr == '反击':
+                player._counter_attack += value
+                res += player.field_status('反击', player.counter_attack * 100, unit='%',
+                                            add=ATTRIBUTE_POINTS['counter_attack'] * value * 100)
+            res += f"总属性/可用: {player.total_attr_points}/{player.curr_attr_points}"
+            player.save()
+        return res
+
+            # res = f"未分配属性点:{player.curr_attr_points}\n"
+
+
+class CheckAttributePlugin(CheckStatusPlugin):
+
+    def get_reply(self):
+        if not self.message.startswith('属性'):
+            return
+        player = get_player(self.user_id, self.group_id)
+        res = f"{cq.at(self.user_id)}当前属性: \n"
+        res += f'等级:{player.level}\n'
+        res += f'总属性/可用属性:{player.total_attr_points}/{player.curr_attr_points}\n'
+        res += f'生命({player._health_max}): {player.health_max}\n'
+        res += f'攻击({player._damage}): {player.damage}\n'
+        res += f'闪避({player._evade}): {player.evade*100:.1f}%\n'
+        res += f'反击({player._counter_attack}): {player.counter_attack*100:.1f}%\n'
+        res += f'命中({player._hit_rate}): {player.hit_rate*100:.1f}%\n'
+        res += f'暴击({player._critical}): {player.critical*100:.1f}%\n'
+
+        res += ""
+        res += f'小伤加成: {(self._base_attack_min + self._attack_min)*100:.1f}%(无法加点)\n'
+        res += f'大伤加成: {(self._base_attack_max + self._attack_max)*100:.1f}%(无法加点)\n'
+        return res
+
+
+class SupplyPlugin(CheckStatusPlugin):
+    def get_reply(self):
+        if self.message != '补偿':
+            return
+        
+        with database.atomic() as t:
+
+            player = get_player(user_id=self.user_id, group_id=self.group_id)
+            if player.supply_gold > 0:
+                add_gold = player.supply_gold
+                player.supply_gold = 0
+                player.gold += add_gold
+                player.save()
+                return f"{cq.at(self.user_id)}获得{add_gold}g补偿!"
+            else:
+                return f"你的补偿已经领取完了！"
