@@ -3,14 +3,16 @@ import re
 
 def at(user_id):
     """ https://docs.go-cqhttp.org/cqcode/#%E6%9F%90%E4%BA%BA """
-    return "[CQ:at,qq=%s]" % user_id
+    return f"[CQ:at,qq={user_id}]" 
 
 
 def image(file):
-    return "[CQ:image,file=file://%s]" % file
+    """ 构建图片CQ码 """
+    return f"[CQ:image,file=file://{file}]"
 
 
-def get_at_user_id(message):
+def get_at_user_id(message) -> int: 
+    """ 搜索并返回消息中第一个出现的qq号 """
     match = re.search(r"\[CQ:at,qq=(.*?)]", message)
     if match:
         res = match.group(1)
@@ -21,5 +23,4 @@ def get_at_user_id(message):
 
 
 if __name__ == '__main__':
-    msg = "夯[CQ:at,qq='or 1=1 --]"
-    print(get_at_user_id(msg))
+    pass

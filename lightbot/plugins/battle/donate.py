@@ -108,7 +108,7 @@ class DonatePlugin(GroupMessagePlugin):
                 res += player.field_status('接收人黄金', receiver.gold, add=num)
                 return res
             else:
-                return f"你钱不足\n当前{player.gold}g，要转{num}g"
+                return f"穷狗！你钱不足\n当前{player.gold}g，要转{num}g"
 
         else:
             return '当前版本暂时只能转g'

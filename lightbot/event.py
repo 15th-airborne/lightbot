@@ -19,6 +19,16 @@ class Event(dict):
         # 转义字符
         if self.is_message():
             self['message'] = unescape(self['message'])
+        
+        self.user_id = self.get('user_id')
+        self.group_id = self.get('group_id')
+        self.message = self.get('message')
+
+    def __getattr__(self, key):
+        return self[key]
+    
+    def __setattr__(self, key, value):
+        self[key] = value
 
     def is_message(self):
         return self.get('post_type') == 'message'
@@ -34,7 +44,7 @@ class Event(dict):
 
     # 群和私聊的戳一戳
     def is_group_poke(self):
-        return self.get('group_id') and self.get('sub_type') == 'poke'
+        return self.group_id and self.get('sub_type') == 'poke'
 
     def is_private_poke(self):
-        return not self.get('group_id') and self.get('sub_type') == 'poke'
+        return not self.group_id and self.get('sub_type') == 'poke'

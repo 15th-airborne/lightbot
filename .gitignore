@@ -108,4 +108,5 @@ venv.bak/
 cqhttp/
 img/
 logs/
-lightbot/logs/output.log.1
+#output.log.1
+*.out
