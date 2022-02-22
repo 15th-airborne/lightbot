@@ -1,5 +1,6 @@
 from plugin_manager import GroupMessagePlugin
-from .models import get_image_file_name, add_question_answer, answer_question
+from .models import get_image_file_name, add_question_answer, answer_question, \
+    delete_question_answer
 import logging
 logger = logging.getLogger(__name__)
 
@@ -30,3 +31,24 @@ class AskPlugin(GroupMessagePlugin):
         answer = answer_question(self.message)
         return answer
 
+
+
+class ForgetPlugin(GroupMessagePlugin):
+    def get_reply(self):
+        if not self.message.startswith('忘记'):
+            return
+
+        words = self.message.strip().split()
+        if len(words) < 3:
+            return "格式为：忘记 <句子> <回答> \n例:忘记 你是谁 我是你爹"
+
+        question = words[1]
+        answer = " ".join(words[2:])
+        if len(question) > 512 or len(answer) > 512:
+            return "句子或问题...太...太长了"
+        else:
+            question = get_image_file_name(question)
+            logger.info(question)
+            # 如果answer是图片的话，进行一些处理
+            reply = delete_question_answer(question, answer)
+            return reply

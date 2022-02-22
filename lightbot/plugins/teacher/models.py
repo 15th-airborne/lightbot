@@ -12,25 +12,31 @@ class QuestionAnswer(BaseModel):
     group_id = IntegerField()
     question = CharField()
     answer = CharField()
+
     teach_time = DateTimeField(default=datetime.datetime.now)
     use_time = DateTimeField(default=datetime.datetime(2000, 1, 1))
+    delete = BooleanField(default=False)
 
     class Meta:
         table_name = "question_answer"
+        # constraints = [SQL('UNIQUE (question, answer)')]
 
 
 def add_question_answer(user_id, group_id, question, answer):
     try:
         # question = get_image_file_name(question)
         # answer = get_image_answer(answer)
-        QuestionAnswer.get(question=question, answer=answer)
+        qa = QuestionAnswer.get(question=question, answer=answer)
+        if qa.delete:
+            qa.delete = False
+            qa.save()
+            return "我学会了！"
         return "我学过了！"
     except QuestionAnswer.DoesNotExist:
         with database.atomic():
             # Attempt to create the user. If the username is taken, due to the
             # unique constraint, the database will raise an IntegrityError.
-
-            user = QuestionAnswer.create(
+            QuestionAnswer.create(
                 user_id=user_id,
                 group_id=group_id,
                 question=question,
@@ -52,10 +58,18 @@ def answer_question(question):
     question = get_image_file_name(question)
 
     # qas = QuestionAnswer.select().where(QuestionAnswer.question == question).order_by(QuestionAnswer.use_time)
-    qas = QuestionAnswer.select().where(QuestionAnswer.question == question)
-
-    if qas.exists():
-        qa = random.choice(qas)
+    # query = QuestionAnswer.select().where((QuestionAnswer.question == question) & (not QuestionAnswer.delete))
+    
+    qa = QuestionAnswer.select()\
+        .where(
+            QuestionAnswer.question == question,
+            QuestionAnswer.delete == False,
+        )\
+        .order_by(fn.Rand()) \
+        .get_or_none()
+    
+    if qa:
+        # qa = random.choice(query)
         # print(qa.answer)
         # 更新使用时间 保证每次都回复不一样的话
         # p = QuestionAnswer. \
@@ -70,6 +84,18 @@ def answer_question(question):
             return answer
 
         return qa.answer
+
+
+def delete_question_answer(question, answer):
+    # qa = QuestionAnswer.get_or_none(question=question, answer=answer)
+    res = QuestionAnswer.update(delete=True)\
+        .where(
+            QuestionAnswer.question==question,
+            QuestionAnswer.answer==answer,
+        ).execute()
+    if res:
+        return "我学废了！"   
+    return "我没学过！"
 
 
 create_tables([QuestionAnswer])
