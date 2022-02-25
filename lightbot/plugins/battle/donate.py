@@ -56,11 +56,12 @@ class DonatePlugin(GroupMessagePlugin):
         player = get_player(self.user_id, self.group_id)
         receiver_id = cq.get_at_user_id(self.message)
         receiver = get_player(receiver_id, self.group_id)
-        if int(receiver_id) == int(self.user_id):
-            return "不能d给自己！"
 
         if not receiver:
-            return "找不到收货人"
+            return
+
+        if int(receiver_id) == int(self.user_id):
+            return "不能d给自己！"
 
         # 上一条捐赠记录
         last_donate_record = DonateRecord \

@@ -1,3 +1,4 @@
+import sys
 import os
 import logging
 import logging.handlers
@@ -38,3 +39,11 @@ logger.addHandler(file_handler)
 logger.addHandler(stream_handler)
 
 logger.debug('日志初始化完毕')
+
+
+def error_callback(exc_type, exc_value, exc_traceback):
+    logging.error("", exc_info=(
+        exc_type, exc_value, exc_traceback))
+
+
+sys.excepthook = error_callback

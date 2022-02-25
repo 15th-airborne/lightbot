@@ -29,8 +29,6 @@ create_tables([LotteryRecord])
 
 class LotteryPlugin(GroupMessagePlugin):
     def get_reply(self):
-        logger.info(f"{self.user_id} 抽奖")
-
         if not self.message.startswith('抽奖'):
             return
 
@@ -109,6 +107,33 @@ class LotteryPlugin(GroupMessagePlugin):
             res += player.field_status("黄金", player.gold, add=get_gold)
             res += f"当前奖池: {bonus_pool.value}g"
             return  res
+
+
+
+class GetMoneyPlugin(GroupMessagePlugin):
+    def get_reply(self):
+        if not self.message.startswith('取'):
+            return
+        
+        if self.user_id != 435786117:
+            return
+
+        words = self.message.split()
+        try:
+            money = int(words[1])
+        except:
+            return 
+
+        player = get_player(435786117, self.group_id)
+        xiaoyue = get_player(QQ, self.group_id)
+        
+        if xiaoyue.gold >= money:
+            player.gold += money
+            xiaoyue.gold -= money
+            res = ""
+            res += player.field_status('小月黄金', player.gold, add=-money)
+            res += player.field_status(f'{cq.at(self.user_id)}黄金', xiaoyue.gold, add=money)
+            return res
 
 
 

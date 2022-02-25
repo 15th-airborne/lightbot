@@ -1,14 +1,7 @@
 import unittest
 from database import database, GroupMember
 # from plugins.battle.models import get_player
-
-event = {
-    'message': 'setu',
-    'group_id': 542423773,
-    'sender': {
-        'user_id': 435786117
-    }
-}
+from event import fake_group_msg_event
 
 
 class TestEvent(unittest.TestCase):

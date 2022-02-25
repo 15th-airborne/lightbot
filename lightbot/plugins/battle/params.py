@@ -3,6 +3,7 @@ REBORN_SPEND = 200  # 买活价格
 WASH_POINTS_SPEND = 200 # 洗点价格
 ATTACK_COLD_TIME = 3  # 攻击冷却时间
 DONATE_COOLDOWN = 60  # 捐钱冷却时间
+POINT_LIMIT = 50  # 加点上限
 FOODS = [
     {
         'name': 'q1面包',
@@ -48,7 +49,8 @@ WEAPONS = [
     # _base_evade = 0.15  # 基础闪避率
     # _base_critical = 0.15  # 基础暴击率
     # _base_counter_attack = 0.15  # 基础反击率
-
+BASE_ATTR_POINTS = 30  # 基础属性点
+LEVEL_ATTR_POINTS = 3  # 每升1级获得的属性点
 ATTRIBUTE_POINTS = {
     'health_max': 5,
     'damage': 1,

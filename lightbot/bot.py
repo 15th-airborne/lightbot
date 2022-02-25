@@ -33,7 +33,7 @@ class Bot:
             await self.update_group_member_info(group['group_id'])
 
             if get_object(Group, group_id=group['group_id']) is not None:
-                logger.info("群 %s 已存在" % group['group_name'])
+                # logger.info("群 %s 已存在" % group['group_name'])
                 continue
                 
             Group.create(**group)
@@ -53,7 +53,7 @@ class Bot:
 
         for member in member_list:
             if get_object(GroupMember, group_id=group_id, user_id=member['user_id']):
-                logger.info("用户 %s 已存在" % member['card'])
+                # logger.info("用户 %s 已存在" % member['card'])
                 continue
 
             GroupMember.create(**member)

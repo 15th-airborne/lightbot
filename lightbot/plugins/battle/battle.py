@@ -13,26 +13,7 @@ from .models import (
 from utils import cq
 import logging
 logger = logging.getLogger(__name__)
-
-
-# def get_user_id(event):
-#     user_id = cq.get_at_user_id(event['message'])
-#     if user_id is None:
-#         user_id = event['sender']['user_id']
-#     return user_id
-
-
-# @add_command_temp(keywords=["查看状态"])
-# async def check_player_status(bot, event):
-#     """ 查看玩家状态 """
-#     user_id = get_user_id(event)
-#     group_id = event['group_id']
-#     print(user_id, group_id)
-#     player = get_player(user_id, group_id)
-#     status = player.status()
-#     print(status)
-
-#     await bot.send_group_msg(group_id, status)
+from .params import POINT_LIMIT
 
 
 class CheckStatusPlugin(GroupMessagePlugin):
@@ -69,23 +50,8 @@ class GoodsStatusPlugin(CheckStatusPlugin):
         if player is not None:
             return player.goods_status()
 
-# @add_command_temp(keywords=["揍"])
-# async def attack_someone(bot, event):
-#     """ 攻击某人 """
-#     attacker_user_id = event['sender']['user_id']
-#     defender_user_id = get_defender_user_id(event['message'])
-
-#     group_id = event['group_id']
-#     print(attacker_user_id, defender_user_id, group_id)
-#     msg = attack_someone_reply(attacker_user_id, defender_user_id, group_id)
-#     await bot.send_group_msg(group_id, msg)
-
-
-# def get_defender_user_id(message):
-#     return cq.get_at_user_id(message)
 
 # 查看玩家状态
-
 class AttackSomeonePlugin(GroupMessagePlugin):
     def __init__(self, event):
         super().__init__(event)
@@ -184,27 +150,6 @@ class BuyPlugin(GroupMessagePlugin):
 
             return buy_reply(self.user_id, self.group_id, item_name, item_num)
 
-
-# class LuckDrawPlugins(GroupMessagePlugin):
-#     def get_reply(self):
-#         if self.message.startswith('抽奖'):
-#             user = get_player(self.user_id, self.group_id)
-#             logger.info("抽奖")
-#             if user.is_dead():
-#                 return "你挂了, 抽不了奖"
-
-#             if user.gold < 100:
-#                 return f"你钱不足，需要100g，当前{user.gold}"
-            
-#             user.gold -= 100
-#             add_gold = random.choices([1000, 500, 100, 50, 10], weights=[0.01, 0.03, 0.5, 0.41, 0.05], k=1)[0]
-#             if add_gold == 100:
-#                 add_gold = random.randint(60, 140)
-
-#             user.gold += add_gold
-#             user.save()
-
-#             return f"花费100g抽奖\n抽到了{add_gold}g, 当前{user.gold}g"
 
 def item_level(word) -> int:
     if word.lower().startswith('q1'):
@@ -327,21 +272,37 @@ class AddAttributePlugin(GroupMessagePlugin):
                                             add=ATTRIBUTE_POINTS['damage'] * value)
 
             elif attr == '命中':
+                if player._hit_rate >= 50:
+                    return "最多只能加%s点命中！" % 50
+                value = min(value, POINT_LIMIT - player._hit_rate)
                 player._hit_rate += value
+
                 res += player.field_status('命中', player.hit_rate * 100, unit='%',
                                             add=ATTRIBUTE_POINTS['hit_rate'] * value * 100)
 
             elif attr == '暴击':
+                if player._critical >= POINT_LIMIT:
+                    return "最多只能加%s点暴击！" % POINT_LIMIT
+
+                value = min(value, POINT_LIMIT - player._critical)
                 player._critical += value
                 res += player.field_status('暴击', player.critical * 100, unit='%',
                                             add=ATTRIBUTE_POINTS['critical'] * value * 100)
 
             elif attr == '闪避':
+                if player._evade >= POINT_LIMIT:
+                    return "最多只能加%s点闪避！" % POINT_LIMIT
+
+                value = min(value, POINT_LIMIT - player._evade)
                 player._evade += value
                 res += player.field_status('闪避', player.evade * 100, unit='%',
                                             add=ATTRIBUTE_POINTS['evade'] * value * 100)
 
             elif attr == '反击':
+                if player._counter_attack >= POINT_LIMIT + 30:
+                    return "最多只能加%s点反击！" % POINT_LIMIT + 30
+
+                value = min(value, POINT_LIMIT + 30 - player._counter_attack)
                 player._counter_attack += value
                 res += player.field_status('反击', player.counter_attack * 100, unit='%',
                                             add=ATTRIBUTE_POINTS['counter_attack'] * value * 100)
@@ -353,7 +314,6 @@ class AddAttributePlugin(GroupMessagePlugin):
 
 
 class CheckAttributePlugin(CheckStatusPlugin):
-
     def get_reply(self):
         if not self.message.startswith('属性'):
             return
@@ -363,14 +323,15 @@ class CheckAttributePlugin(CheckStatusPlugin):
         res += f'总属性/可用属性:{player.total_attr_points}/{player.curr_attr_points}\n'
         res += f'生命({player._health_max}): {player.health_max}\n'
         res += f'攻击({player._damage}): {player.damage}\n'
-        res += f'闪避({player._evade}): {player.evade*100:.1f}%\n'
-        res += f'反击({player._counter_attack}): {player.counter_attack*100:.1f}%\n'
-        res += f'命中({player._hit_rate}): {player.hit_rate*100:.1f}%\n'
-        res += f'暴击({player._critical}): {player.critical*100:.1f}%\n'
+        res += f'闪避({player._evade}/{POINT_LIMIT}): {player.evade*100:.1f}%\n'
+        res += f'反击({player._counter_attack}/{POINT_LIMIT+30}): {player.counter_attack*100:.1f}%\n'
+        res += f'命中({player._hit_rate}/{POINT_LIMIT}): {player.hit_rate*100:.1f}%\n'
+        res += f'暴击({player._critical}/{POINT_LIMIT}): {player.critical*100:.1f}%\n'
 
         res += ""
-        res += f'小伤加成: {(self._base_attack_min + self._attack_min)*100:.1f}%(无法加点)\n'
-        res += f'大伤加成: {(self._base_attack_max + self._attack_max)*100:.1f}%(无法加点)\n'
+        res += f'小伤加成: {(player._base_attack_min + player._attack_min)*100:.1f}%(无法加点)\n'
+        res += f'大伤加成: {(player._base_attack_max + player._attack_max)*100:.1f}%(无法加点)\n'
+        res += player.field_status('伤害范围', player.attack_min, player.attack_max)
         return res
 
 

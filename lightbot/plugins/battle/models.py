@@ -7,11 +7,11 @@ import random
 
 from peewee import *
 
-from database import create_tables, BaseModel
+from database import create_tables, BaseModel, PublicVariable
 from database.models import GroupMember
 from .params import (
     REBORN_REMAIN_TIME, FOODS, WEAPONS, REBORN_SPEND, WASH_POINTS_SPEND,
-    ATTACK_COLD_TIME, ATTRIBUTE_POINTS
+    ATTACK_COLD_TIME, ATTRIBUTE_POINTS, BASE_ATTR_POINTS, LEVEL_ATTR_POINTS
 )
 from utils import cq
 import logging
@@ -173,7 +173,7 @@ class Player(BaseModel):
     # 总属性点
     @property
     def total_attr_points(self):
-        return self.level * 2
+        return self.level * LEVEL_ATTR_POINTS + BASE_ATTR_POINTS
 
     # 可用属性点
     @property
@@ -346,12 +346,13 @@ class Player(BaseModel):
 
         if self.is_dead():
             res += f"阵亡中...({self.reborn_remain_time}复活)\n"
-
+        res += self.field_status('升级所需经验', self.level_up_exp)
         res += self.field_status('生命', self.health, self.health_max, end=" ")
         res += self.field_status('体力', self.energy, self.energy_limit)
         res += self.field_status('攻击', self.attack_min, self.attack_max)
         res += self.field_status("击杀\阵亡", self.kill, self.dead)
         res += self.field_status('黄金', self.gold)
+        
         # res += self.field_status("闪避\反击", self.evade * 100, self.counter_attack * 100, unit="%")
         # res += self.field_status("命中\暴击", self.hit_rate * 100, self.critical * 100, unit="%")
         # res += self.field_status('可用属性点', self.curr_attr_points)
@@ -616,16 +617,29 @@ def show_market():
 
 
 def sign_reply(user_id, group_id):
-    user = get_player(user_id, group_id)
-    if user:
+    player = get_player(user_id, group_id)
+    if player:
         gold_add = random.randint(50, 150)
-        is_sign = user.sign(gold_add)
+        old_level = player.level
+        is_sign = player.sign(gold_add)
+        
         if not is_sign:
             return "今天已经签到过了!"
-        user.refresh_status()
-        res = "签到成功！经验+100\n"
-        res += user.field_status('黄金', user.gold, add=gold_add)
+        player.refresh_status()
+        res = f"{cq.at(player.user_id)}签到成功！\n经验+100\n"
 
+        if player.level > old_level:
+            res += f"升级了！获得{LEVEL_ATTR_POINTS}属性点！\n"
+
+        res += f"当前等级: {player.level}\n"
+
+        bonus_pool = PublicVariable.get_obj(player.group_id, name='奖金池')
+        bonus_pool.value += 10
+        bonus_pool.save()
+        
+        res += player.field_status('黄金', player.gold, add=gold_add)
+        res += player.field_status('奖池', bonus_pool.value, add=10)
+            
         # res += user.field_status('生命值', user.health, user.health_max, add=2)
         # res += user.field_status('攻击力', user.attack_min, user.attack_max, add=1)
         

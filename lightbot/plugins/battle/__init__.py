@@ -12,8 +12,8 @@ from .battle import (
     SupplyPlugin,
 )
 
-from .lottery import LotteryPlugin
-# from .donate import DonatePlugin
+from .lottery import LotteryPlugin, GetMoneyPlugin
+from .donate import DonatePlugin
 
 from plugin_manager import all_plugins
 
@@ -26,7 +26,9 @@ all_plugins.append(BuyPlugin)
 all_plugins.append(EatPlugins)
 
 all_plugins.append(LotteryPlugin)
-# all_plugins.append(DonatePlugin)
+all_plugins.append(GetMoneyPlugin)
+
+all_plugins.append(DonatePlugin)
 
 all_plugins.append(AddAttributePlugin)
 all_plugins.append(CheckAttributePlugin)
