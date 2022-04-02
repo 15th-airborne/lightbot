@@ -8,14 +8,15 @@ from database import database, create_tables, BaseModel
 
 
 class QuestionAnswer(BaseModel):
-    user_id = IntegerField()
-    group_id = IntegerField()
+    user_id = BigIntegerField()
+    group_id = BigIntegerField()
     question = CharField()
     answer = CharField()
 
     teach_time = DateTimeField(default=datetime.datetime.now)
     use_time = DateTimeField(default=datetime.datetime(2000, 1, 1))
     delete = BooleanField(default=False)
+    delete_user_id = BigIntegerField()
 
     class Meta:
         table_name = "question_answer"
@@ -28,6 +29,8 @@ def add_question_answer(user_id, group_id, question, answer):
         # answer = get_image_answer(answer)
         qa = QuestionAnswer.get(question=question, answer=answer)
         if qa.delete == True:
+            if user_id != 435786117 and qa.delete_user_id == 435786117:
+                return "我学不会！"
             qa.delete = False
             qa.save()
             return "我学会了！"
@@ -86,15 +89,29 @@ def answer_question(question):
         return qa.answer
 
 
-def delete_question_answer(question, answer):
+def delete_question_answer(question, answer, user_id):
     # qa = QuestionAnswer.get_or_none(question=question, answer=answer)
-    res = QuestionAnswer.update(delete=True)\
+    qa = QuestionAnswer.select()\
         .where(
-            QuestionAnswer.question==question,
-            QuestionAnswer.answer==answer,
-        ).execute()
-    if res:
-        return "我学废了！"   
+            QuestionAnswer.question == question,
+            QuestionAnswer.answer == answer,
+            QuestionAnswer.delete == False,
+        )\
+        .get_or_none()
+
+    if qa:
+        if user_id == qa.user_id or user_id == 435786117:
+            qa.delete = True
+            qa.delete_user_id = user_id
+            qa.save()
+    # res = QuestionAnswer.update(delete=True)\
+    #     .where(
+    #         QuestionAnswer.question==question,
+    #         QuestionAnswer.answer==answer,
+    #     ).execute()
+            return "我学废了！"
+        else:
+            return "我忘不掉！"
     return "我没学过！"
 
 

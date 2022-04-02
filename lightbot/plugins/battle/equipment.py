@@ -37,6 +37,7 @@ class Equipment:
 class Equipment:
     user_id = BigIntegerField()  # 所属人(Q号)
     group_id = BigIntegerField()  # 所属群
+
     kind = CharField(max_length=30)  # 类型
     rarity = IntegerField()  # 稀有度
     level = IntegerField(default=1)  # 强化等级
@@ -51,7 +52,8 @@ class Equipment:
     value1 = FloatField() 
 
     attr2 = CharField(max_length=30)  # 额外属性2
-    value2 = FloatField()
+    value2 = FloatField() 
+    
 
     c_time = DateTimeField(default=datetime.datetime.now)  # 创建时间
 

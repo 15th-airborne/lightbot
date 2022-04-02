@@ -59,7 +59,7 @@ Q5_WEAPON_DAMAGE = 0.5
 class Player(BaseModel):
     user_id = BigIntegerField()  # Q号
     group_id = BigIntegerField()  # 群号
-    
+    name = CharField()
 
     dead_time = TimestampField(default=0)  # 死亡时间
 
@@ -341,29 +341,26 @@ class Player(BaseModel):
 
     def status(self):
         self.refresh_status()
-
         res = f"{cq.at(self.user_id)}({self.level}级)当前状态: \n"
-
         if self.is_dead():
-            res += f"阵亡中...({self.reborn_remain_time}复活)\n"
+            res += f"你挂了...({self.reborn_remain_time}复活)\n"
         res += self.field_status('升级所需经验', self.level_up_exp)
         res += self.field_status('生命', self.health, self.health_max, end=" ")
         res += self.field_status('体力', self.energy, self.energy_limit)
-        res += self.field_status('攻击', self.attack_min, self.attack_max)
-        res += self.field_status("击杀\阵亡", self.kill, self.dead)
+        res += self.field_status('攻击', self.attack_min, self.attack_max, end=" ")
+        res += self.field_status("K/D", self.kill, self.dead)
         res += self.field_status('黄金', self.gold)
         
         # res += self.field_status("闪避\反击", self.evade * 100, self.counter_attack * 100, unit="%")
         # res += self.field_status("命中\暴击", self.hit_rate * 100, self.critical * 100, unit="%")
         # res += self.field_status('可用属性点', self.curr_attr_points)
-
         return res
 
     def goods_status(self):
         res = ""
         res += self.field_status('黄金', self.gold)
         res += self.field_status('Q1/Q5 面包', self.q1_food, self.q5_food)
-        # res += self.field_status('Q5枪/面包', self.q5_weapon, self.q5_food)
+        res += self.field_status('Q1/Q5 枪', self.q1_weapon, self.q5_weapon)
         res += self.field_status('食物额度', self.food_limit, self.food_limit_max)
         return res
 
@@ -371,11 +368,6 @@ class Player(BaseModel):
     def sign(self, gold_add):
         if not self.is_sign_today:
             self.get_exp(100)
-            # self.attack_min += 1
-            # self.attack_max += 1
-            # self.health_max += 2
-            # self.health += 2
-
             self.gold += gold_add
             self.last_sign = datetime.datetime.now().date()
             self.num_sign += 1
@@ -431,7 +423,16 @@ def attack_someone_reply(attacker_user_id, defender_user_id, group_id, weapon_le
     now = datetime.datetime.now()
     d = (now - attacker.last_hit_time).total_seconds()
     if d <= ATTACK_COLD_TIME:
-        return "攻击还有%.3f秒冷却" % (ATTACK_COLD_TIME - d)
+        xiaoyue = get_player(QQ, group_id)
+        xiaoyue.gold += 10
+        attacker.gold -= 10
+        attacker.save()
+        xiaoyue.save()
+        res = "攻击还有%.3f秒冷却\n" % (ATTACK_COLD_TIME - d)
+        res += "由于攻击过快被小月偷了10g\n"
+        res += attacker.field_status(f'{cq.at(attacker.user_id)}黄金', attacker.gold, add=-10)
+        res += attacker.field_status('小月黄金', xiaoyue.gold, add=10)
+        return res
 
     attacker.refresh_status()
     defender.refresh_status()
@@ -509,7 +510,8 @@ def attack_someone_reply(attacker_user_id, defender_user_id, group_id, weapon_le
     res = attack_help(attacker, defender, weapon_level=weapon_level)
 
     # 反击判定
-    if not defender.is_dead() and random.random() < defender.counter_attack:
+    # if not defender.is_dead() and random.random() < defender.counter_attack:
+    if random.random() < defender.counter_attack:
         res += "触发反击!\n"
         res += attack_help(defender, attacker, weapon_level=0)
 

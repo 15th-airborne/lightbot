@@ -3,13 +3,14 @@ import aiohttp
 
 import log
 from event import Event
+from database.models import Group, GroupMember, get_object
 import plugins
 from plugin_manager import all_plugins
 from api import Api
 
 import logging
 logger = logging.getLogger(__name__)
-from database.models import Group, GroupMember, get_object
+
 DEBUG = False
 
 
@@ -40,6 +41,7 @@ class Bot:
             logger.info("创建 %s" % group['group_name'])
 
     async def update_group_member_info(self, group_id):
+        from plugins.battle.models import Player
         api = Api(action='get_group_member_list', group_id=group_id)
         resp = await self.do(api)
 
@@ -53,10 +55,23 @@ class Bot:
 
         for member in member_list:
             if get_object(GroupMember, group_id=group_id, user_id=member['user_id']):
+                name = member['card'] if member['card'] else member['nickname']
+                res = (
+                    Player
+                    .update({Player.name:name})
+                    .where(
+                        (Player.user_id == member['user_id']) & 
+                        (Player.group_id == group_id)
+                    )
+                    .execute()
+                )
+
                 # logger.info("用户 %s 已存在" % member['card'])
                 continue
 
             GroupMember.create(**member)
+
+
             logger.info("创建用户 %s" % member['card'])
 
 

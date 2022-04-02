@@ -11,7 +11,7 @@ def unescape(s: str) -> str:
         .replace('&amp;', '&')
 
 
-def fake_group_msg_event(msg, user_id=435786117, group_id=545423773, nickname='LightL'):
+def fake_group_msg_event(msg, user_id=435786117, group_id=542423773, nickname='LightL'):
     event={
         'user_id': user_id,
         'group_id': group_id,

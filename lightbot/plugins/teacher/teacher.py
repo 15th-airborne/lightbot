@@ -50,5 +50,5 @@ class ForgetPlugin(GroupMessagePlugin):
             question = get_image_file_name(question)
             logger.info(question)
             # 如果answer是图片的话，进行一些处理
-            reply = delete_question_answer(question, answer)
+            reply = delete_question_answer(question, answer, self.user_id)
             return reply

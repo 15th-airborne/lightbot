@@ -14,7 +14,7 @@ CACHE_IMAGE_PATH = "projects/lightbot/cqhttp/data"
 DATABASE_PARAMS = {
     "database": "qq_bot",  # 数据库名
     "user": "root",
-    "password": "123456",
+    "password": "!Light2077",
     "host": "localhost",
     "port": 3306
 }

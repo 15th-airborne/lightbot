@@ -130,9 +130,12 @@ class GetMoneyPlugin(GroupMessagePlugin):
         if xiaoyue.gold >= money:
             player.gold += money
             xiaoyue.gold -= money
+            
             res = ""
-            res += player.field_status('小月黄金', player.gold, add=-money)
-            res += player.field_status(f'{cq.at(self.user_id)}黄金', xiaoyue.gold, add=money)
+            res += player.field_status(f'{cq.at(self.user_id)}黄金', player.gold, add=money)
+            res += player.field_status(f'小月黄金', xiaoyue.gold, add=-money)
+            player.save()
+            xiaoyue.save()
             return res
 
 

@@ -31,6 +31,7 @@ class CheckStatusPlugin(GroupMessagePlugin):
         #     return "你挂了"
         if player is not None:
             return player.status()
+        return '未找到玩家'
 
     def get_user_id(self, event):
         user_id = cq.get_at_user_id(event['message'])
@@ -300,7 +301,7 @@ class AddAttributePlugin(GroupMessagePlugin):
 
             elif attr == '反击':
                 if player._counter_attack >= POINT_LIMIT + 30:
-                    return "最多只能加%s点反击！" % POINT_LIMIT + 30
+                    return "最多只能加%s点反击！" % (POINT_LIMIT + 30)
 
                 value = min(value, POINT_LIMIT + 30 - player._counter_attack)
                 player._counter_attack += value

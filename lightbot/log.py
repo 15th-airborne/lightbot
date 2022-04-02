@@ -24,7 +24,7 @@ file_handler.setLevel(logging.INFO)
 
 # 输出日志到终端
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
+stream_handler.setLevel(logging.INFO)
 
 # 显示格式
 formatter = logging.Formatter(
