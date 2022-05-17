@@ -19,6 +19,7 @@ class Bot:
         pass
     
     async def update_group_info(self):
+        """ 启动时更新群信息 """
         get_group_list_api = Api(action='get_group_list')
         resp = await self.do(get_group_list_api)
 

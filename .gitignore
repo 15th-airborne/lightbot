@@ -110,3 +110,4 @@ img/
 logs/
 #output.log.1
 *.out
+config.py

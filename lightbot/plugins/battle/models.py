@@ -117,6 +117,9 @@ class Player(BaseModel):
     # 最后一次攻击的时间
     last_hit_time = DateTimeField(default=datetime.datetime.now)
 
+    # 最后一次抽奖时间
+    luck_draw_time = DateTimeField(default=datetime.datetime.now)
+
     # 补偿g
     supply_gold = IntegerField(default=0)
     
@@ -626,7 +629,7 @@ def sign_reply(user_id, group_id):
         is_sign = player.sign(gold_add)
         
         if not is_sign:
-            return "今天已经签到过了!"
+            return "现在每天凌晨1点会自动双击！\n想手动双击的需要熬夜！"
         player.refresh_status()
         res = f"{cq.at(player.user_id)}签到成功！\n经验+100\n"
 

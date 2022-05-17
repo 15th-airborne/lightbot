@@ -8,6 +8,8 @@ import asyncio
 import aiohttp
 from api import Api
 
+
+# 0 3 * * * /opt/miniconda3/envs/lightbot/bin/python /projects/lightbot/lightbot/drink_tea.py
 async def drink_tea(group_id):
     api = Api(
         action="send_group_msg",

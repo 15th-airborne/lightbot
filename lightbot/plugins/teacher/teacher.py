@@ -28,7 +28,7 @@ class TeachPlugin(GroupMessagePlugin):
 
 class AskPlugin(GroupMessagePlugin):
     def get_reply(self):
-        answer = answer_question(self.message)
+        answer = answer_question(self.message.strip())
         return answer
 
 

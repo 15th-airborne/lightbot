@@ -37,7 +37,13 @@ class LotteryPlugin(GroupMessagePlugin):
         player = get_player(self.user_id, self.group_id)
         bonus_pool = PublicVariable.get_obj(player.group_id, name='奖金池')
         xiaoyue = get_player(QQ, self.group_id)
+        now = datetime.datetime.now()
+        if now - player.luck_draw_time < datetime.timedelta(hours=8):
+            next_draw_time = player.luck_draw_time + datetime.timedelta(hours=8)
 
+            msg = f'你才刚刚抽过奖！\n{next_draw_time.strftime("%Y-%m-%d %X")}后才能再次抽奖！\n'\
+                  f'当前奖池:{bonus_pool.value}g'
+            return msg
 
         # if player.is_dead():
         #     return "你挂了, 抽不了奖"
@@ -100,6 +106,7 @@ class LotteryPlugin(GroupMessagePlugin):
                 godds=get_goods
             )
             
+            player.luck_draw_time = now
             bonus_pool.save()
             player.save()
             xiaoyue.save()

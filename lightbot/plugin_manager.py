@@ -2,6 +2,7 @@
 插件管理，实现编写类并放到指定文件目录下就能加载插件的功能
 https://docs.go-cqhttp.org/event/#%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
 """
+from typing import Optional, List
 from api import Api
 all_plugins = []
 
@@ -45,6 +46,17 @@ def parse_params(message, prefix=None):
 
     words = message.split()
     return words
-    
+
+
+def add_command(name: str, alias: Optional[List[str]]=None):
+    def warper(func):
+        def inner(*args, **kwargs):
+            print('inner start')
+            func(*args, **kwargs)
+            print('inner end')
+        return inner
+    return warper
+
+
 plugin_manager = PluginManager()
 add_plugins = plugin_manager.add_plugins

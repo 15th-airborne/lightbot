@@ -58,6 +58,9 @@ def get_image_file_name(message):
 
 
 def answer_question(question):
+    if type(question) is str:
+        question = question.strip()
+        
     question = get_image_file_name(question)
 
     # qas = QuestionAnswer.select().where(QuestionAnswer.question == question).order_by(QuestionAnswer.use_time)
