@@ -20,7 +20,7 @@ DATABASE_PARAMS = {
 }
 
 QQ = 323566263
-
+TEST_GROUP_ID = 542423773
 
 if __name__ == '__main__':
     print(BASE_PATH)

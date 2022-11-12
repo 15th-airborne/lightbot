@@ -5,13 +5,72 @@ import log
 from event import Event
 from database.models import Group, GroupMember, get_object
 import plugins
-from plugin_manager import all_plugins
+from plugin_manager import all_plugins, commands, all_private_plugins
 from api import Api
 
 import logging
 logger = logging.getLogger(__name__)
-
 DEBUG = False
+
+
+class BaseBot:
+    async def run(self):
+        async with aiohttp.ClientSession() as session:
+            self.session = session
+            # self.ws = await session.ws_connect("ws://127.0.0.1:6700")
+            async with session.ws_connect("ws://127.0.0.1:6700") as ws:
+                print('连接成功！')
+                while True:
+                    event = Event(await ws.receive_json())
+                    if event.is_group_message() and event.message:
+                        asyncio.create_task(self.process_group_event(event))
+                        # print(event['sender']['nickname'], event['message'])
+                        # asyncio.create_task(self.repeat(event['message']))
+
+    async def main(self):
+        task = asyncio.create_task(self.run())
+        await task
+
+    async def send_group_msg(self, group_id, message):
+        json_data = self.get_api_json(
+            'send_group_msg', 
+            group_id=group_id, 
+            message=message
+        )
+        await self.send_json(json_data)
+
+    async def send_private_msg(self, user_id, message):
+        json_data = self.get_api_json(
+            'send_private_msg', 
+            user_id=user_id,
+            message=message
+        )
+        await self.send_json(json_data)
+
+    @staticmethod
+    def get_api_json(action, **params):
+        return {
+            "action": action,
+            "params": params
+        }
+
+    async def send_json(self, json_data):
+        async with self.session.ws_connect('ws://127.0.0.1:6700/api') as ws:
+            await ws.send_json(json_data)
+            # resp = await ws.receive_json()
+            # return resp
+
+    async def process_group_event(self, event: Event):
+        print(event.group_id, event.sender.nickname, event.message)
+        # 判断发言人触发事件的间隔。
+        
+        # 判断是否触发关键词
+        prefix = event.message.split()[0]
+        command = commands.get(prefix)
+        if command:
+            await command(self, event)
+            print('asdfasdf')
+        pass
 
 
 class Bot:
@@ -75,13 +134,11 @@ class Bot:
 
             logger.info("创建用户 %s" % member['card'])
 
-
     async def do(self, action: Api):
         async with self.session.ws_connect('ws://127.0.0.1:6700/api') as ws:
             await ws.send_json(action.json())
             resp = await ws.receive_json()
             return resp
-
 
     async def run(self):
         async with aiohttp.ClientSession() as session:
@@ -111,22 +168,22 @@ class Bot:
 
                     elif event.is_group_poke():
                         pass
-                        # await bot.check_group_poke_command(event)
-
-                        # texts = ['戳我干嘛！', '疼！', '别戳了别戳了']
-                        # ans = random.choice(texts)
-                        # resp = await self.send_group_msg(event['group_id'], ans)
-                    # except Exception as e:
-                    #     api = Api(
-                    #         action="send_group_msg",
-                    #         group_id=event.get('group_id'), 
-                    #         message="我炸了\n %s" % e
-                    #     )
-                    #     logger.error(str(e))
+                    elif event.is_private_message():
+                        # print('private_message!')
+                        res = await self.check_private_message_plugin(event)
+                        # api = Api('send_private_msg', user_id=event.user_id, message='hello!')
                         # await self.do(api)
                         
     async def check_group_message_plugin(self, event):
         for plugin in all_plugins:
+            api = plugin(event).api()
+            if api is not None:
+                await self.do(api)
+                return True
+        return False
+    
+    async def check_private_message_plugin(self, event):
+        for plugin in all_private_plugins:
             api = plugin(event).api()
             if api is not None:
                 await self.do(api)

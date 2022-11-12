@@ -36,6 +36,7 @@ class Event(dict):
         self.user_id = self.get('user_id')
         self.group_id = self.get('group_id')
         self.message = self.get('message')
+        self.sender = Sender(self.get('sender', {}))
 
     def __getattr__(self, key):
         return self[key]
@@ -61,3 +62,15 @@ class Event(dict):
 
     def is_private_poke(self):
         return not self.group_id and self.get('sub_type') == 'poke'
+
+
+class Sender(dict):
+    def __init__(self, sender):
+        super().__init__()
+        self.update(sender)
+
+    def __getattr__(self, key):
+        return self[key]
+
+    def __setattr__(self, key, value):
+        self[key] = value

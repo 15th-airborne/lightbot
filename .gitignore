@@ -106,6 +106,7 @@ venv.bak/
 
 # my ignore
 cqhttp/
+cqhttp2/
 img/
 logs/
 #output.log.1

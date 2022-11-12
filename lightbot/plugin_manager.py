@@ -5,7 +5,7 @@ https://docs.go-cqhttp.org/event/#%E7%A7%81%E8%81%8A%E6%B6%88%E6%81%AF
 from typing import Optional, List
 from api import Api
 all_plugins = []
-
+all_private_plugins = []
 
 class PluginManager:
     def __init__(self):
@@ -39,6 +39,27 @@ class GroupMessagePlugin:
                 message=reply
             )
 
+class PrivateMessagePlugin:
+    def __init__(self, event):
+        self.message = event['message']
+        self.user_id = event['user_id']
+        self.username = event['sender']['nickname']
+
+    def is_activated(self):
+        """ 是否激活该插件 """
+        raise NotImplemented
+
+    def get_reply(self):
+        pass
+
+    def api(self):
+        reply = self.get_reply()
+        if reply is not None and reply != "":
+            return Api(
+                action="send_private_msg",
+                user_id=self.user_id, 
+                message=reply
+            )
 
 def parse_params(message, prefix=None):
     if prefix:
@@ -47,13 +68,17 @@ def parse_params(message, prefix=None):
     words = message.split()
     return words
 
+commands = dict()
 
 def add_command(name: str, alias: Optional[List[str]]=None):
     def warper(func):
         def inner(*args, **kwargs):
-            print('inner start')
+            # print('inner start')
             func(*args, **kwargs)
-            print('inner end')
+            # print('inner end')
+        commands[name] = func
+        if alias:
+            {commands[a]: func for a in alias}
         return inner
     return warper
 

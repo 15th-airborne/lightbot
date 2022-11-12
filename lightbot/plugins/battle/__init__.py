@@ -33,3 +33,6 @@
 # all_plugins.append(AddAttributePlugin)
 # all_plugins.append(CheckAttributePlugin)
 # all_plugins.append(SupplyPlugin)
+
+# from .gamble import GamblePlugin
+# all_plugins.append(GamblePlugin)
